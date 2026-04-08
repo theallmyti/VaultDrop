@@ -115,22 +115,22 @@ flowchart TD
 ## UI Screenshots
 
 ### Home
-![Home](UI-screenshots/HomePage.png)
+<p align="center"><img src="UI-screenshots/HomePage.png" width="280" alt="Home screenshot" /></p>
 
 ### Downloads
-![Downloads](UI-screenshots/DownloadPage.png)
+<p align="center"><img src="UI-screenshots/DownloadPage.png" width="280" alt="Downloads screenshot" /></p>
 
 ### Library
-![Library](UI-screenshots/LibraryPage.png)
+<p align="center"><img src="UI-screenshots/LibraryPage.png" width="280" alt="Library screenshot" /></p>
 
 ### Bookmarks
-![Bookmarks](UI-screenshots/BookmarkPage.png)
+<p align="center"><img src="UI-screenshots/BookmarkPage.png" width="280" alt="Bookmarks screenshot" /></p>
 
 ### Settings (1)
-![Settings 1](UI-screenshots/SettingPage1.png)
+<p align="center"><img src="UI-screenshots/SettingPage1.png" width="280" alt="Settings screenshot 1" /></p>
 
 ### Settings (2)
-![Settings 2](UI-screenshots/SettingPage2.png)
+<p align="center"><img src="UI-screenshots/SettingPage2.png" width="280" alt="Settings screenshot 2" /></p>
 
 ## Setup
 
