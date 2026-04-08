@@ -14,9 +14,48 @@ VaultDrop is an Android app built in Kotlin + Jetpack Compose for saving and man
 
 ## Download APK
 
+### Download Link
+
 - [Download Latest APK](YOUR_APK_DOWNLOAD_LINK_HERE)
 
 Replace `YOUR_APK_DOWNLOAD_LINK_HERE` with your release APK or GitHub Releases URL.
+
+### GitHub Release Description
+
+Use the following text when publishing a new release:
+
+```md
+VaultDrop is an Android app for downloading, bookmarking, and previewing Instagram and YouTube links.
+
+Features:
+- Download Instagram Reels, Posts, and Stories
+- Download YouTube videos
+- Save links as bookmarks with comments and tags
+- Preview saved links inside the app
+- Copy link, refresh preview, and delete from the bookmark menu
+- Repair Instagram links and refresh thumbnails from Settings
+- Optional Instagram session login for improved authenticated extraction
+
+Highlights:
+- Dark, minimal UI
+- Bookmark grid with thumbnails
+- Download queue and progress tracking
+- Built-in media player
+- Settings tools for bookmark maintenance
+
+Installation:
+1. Download the attached APK
+2. Install it on your Android device
+3. Allow installation from unknown sources if prompted
+
+Notes:
+- Android 8.0+ recommended
+- Instagram results may improve after logging in from Settings
+- Keep the app updated for the latest fixes and improvements
+
+Download:
+[Download APK](YOUR_APK_DOWNLOAD_LINK_HERE)
+```
 
 ## Overview
 
