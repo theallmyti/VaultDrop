@@ -652,6 +652,8 @@ main {
   height: 1.5rem;
   flex: 0 0 1.5rem;
   line-height: 1;
+  position: relative;
+  top: -2px;
   transition: transform 0.35s var(--ease);
   color: var(--accent);
 }
