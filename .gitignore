@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Kotlin
+.kotlin/
+
+# Android local config
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary / reports
+*.tmp
+*.swp
+*.swo
+
+# Python caches (repo has utility scripts)
+__pycache__/
+*.pyc
+
+# Local Gradle distribution
+.gradle-dist/
+
+# Local diagnostics
+*_output*.txt
+build_err*.txt
+build_errors*.txt
+gradle_output.txt
+logcat.txt

@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">VaultDrop</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_downloads">Downloads</string>
+    <string name="nav_library">Library</string>
+
+    <!-- Downloads Screen -->
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_subtitle">%1$d active · %2$d completed</string>
+    <string name="section_in_progress">IN PROGRESS</string>
+    <string name="section_completed">COMPLETED</string>
+    <string name="nothing_downloading">Nothing downloading right now</string>
+    <string name="download_queued">Queued</string>
+    <string name="download_saved">✓ Saved</string>
+    <string name="download_retry">Retry</string>
+    <string name="download_speed">↓ %1$s/s</string>
+
+    <!-- Library Screen -->
+    <string name="library_title">Library</string>
+    <string name="filter_most_recent">Most Recent</string>
+    <string name="filter_by_source">By Source</string>
+
+    <!-- Empty State -->
+    <string name="empty_title">Nothing here yet</string>
+    <string name="empty_subtitle">Share any Instagram or YouTube link\nto this app to start downloading</string>
+
+    <!-- Share Receiver -->
+    <string name="share_title">VaultDrop</string>
+    <string name="share_detected_url">Detected URL</string>
+    <string name="share_add_to_queue">Add to Queue</string>
+    <string name="share_added_toast">Added to queue ↓</string>
+    <string name="share_unsupported">This link isn\'t supported yet</string>
+    <string name="quality_1080p">1080p</string>
+    <string name="quality_720p">720p</string>
+    <string name="quality_480p">480p</string>
+
+    <!-- Video Player -->
+    <string name="player_rewind">Rewind 10s</string>
+    <string name="player_forward">Forward 10s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_downloads">Downloads</string>
+    <string name="settings_default_quality">Default Quality</string>
+    <string name="settings_download_location">Download Location</string>
+    <string name="settings_concurrent">Concurrent Downloads</string>
+    <string name="settings_instagram">Instagram</string>
+    <string name="settings_cookie_session">Cookie / Session</string>
+    <string name="settings_cookie_info">Required for Stories and private content</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_storage_used">Storage Used</string>
+    <string name="settings_clear_cache">Clear Cache</string>
+    <string name="settings_delete_all">Delete All Downloads</string>
+    <string name="settings_delete_confirm_title">Delete all downloads?</string>
+    <string name="settings_delete_confirm_body">This will permanently remove all downloaded videos. This action cannot be undone.</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">App Version</string>
+    <string name="settings_credits">Credits / Licenses</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Just share the link</string>
+    <string name="onboarding_body_1">Open any Instagram Reel or YouTube video and tap Share — choose VaultDrop from the list</string>
+    <string name="onboarding_title_2">Track everything</string>
+    <string name="onboarding_body_2">See live download progress, speed, and file size — all in one place</string>
+    <string name="onboarding_title_3">Your personal vault</string>
+    <string name="onboarding_body_3">All your saved videos in a clean library, ready to play offline anytime</string>
+    <string name="onboarding_cta">Let\'s Go</string>
+
+    <!-- Errors -->
+    <string name="error_unsupported_url">This link isn\'t supported</string>
+    <string name="error_network">No connection — tap to retry</string>
+    <string name="error_private_content">Login required — add cookies in Settings</string>
+    <string name="error_video_unavailable">This video can\'t be downloaded</string>
+    <string name="error_storage_full">Not enough storage — free up space</string>
+    <string name="error_download_failed">Download failed — tap to retry</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">VaultDrop Downloads</string>
+    <string name="notification_channel_desc">Download progress and completion notifications</string>
+    <string name="notification_download_complete">✓ %1$s downloaded</string>
+
+    <!-- Actions -->
+    <string name="action_share">Share</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_copy_link">Copy Link</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+</resources>
