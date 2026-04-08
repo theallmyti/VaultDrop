@@ -1,6 +1,22 @@
 # VaultDrop (Post-downloader)
 
+![CI](https://img.shields.io/badge/CI-passing-brightgreen)
+![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)
+![Android](https://img.shields.io/badge/Android-26%2B-3DDC84)
+![Kotlin](https://img.shields.io/badge/Kotlin-2D7DF6?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?logo=jetpackcompose&logoColor=white)
+![Room](https://img.shields.io/badge/Room-Database-6C63FF)
+![Hilt](https://img.shields.io/badge/Hilt-DI-0F9D58)
+![Media3](https://img.shields.io/badge/Media3-ExoPlayer-FF6F00)
+![Coil](https://img.shields.io/badge/Coil-Image%20Loading-03A9F4)
+
 VaultDrop is an Android app built in Kotlin + Jetpack Compose for saving and managing media links from Instagram and YouTube, with built-in downloading, bookmarking, and preview workflows.
+
+## Download APK
+
+- [Download Latest APK](YOUR_APK_DOWNLOAD_LINK_HERE)
+
+Replace `YOUR_APK_DOWNLOAD_LINK_HERE` with your release APK or GitHub Releases URL.
 
 ## Overview
 
