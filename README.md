@@ -18,16 +18,7 @@ VaultDrop is an Android app built in Kotlin + Jetpack Compose for saving and man
 
 ## Website
 
-The landing page lives in [website/](website/) and is ready for GitHub Pages deployment.
-
-To publish it:
-
-1. Push the repository to `main`.
-2. Make sure GitHub Actions is enabled for the repo.
-3. In GitHub Pages settings, choose the `gh-pages` branch with the root folder as the source.
-4. After the workflow runs, open the Pages URL shown in the repository settings.
-
-The deployment workflow is defined in [.github/workflows/github-pages.yml](.github/workflows/github-pages.yml).
+- [Website](https://theallmyti.github.io/VaultDrop/)
 
 ## Overview
 
