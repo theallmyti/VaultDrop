@@ -120,6 +120,7 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 0.85rem;
+  flex-shrink: 0;
 }
 
 .brand-mark {
@@ -139,8 +140,9 @@ img {
 .brand-logo {
   width: 2.65rem;
   height: 2.65rem;
-  object-fit: cover;
+  flex: 0 0 2.65rem;
   border-radius: 999px;
+  background: url('./Logo.png') center / cover no-repeat;
   box-shadow: 0 12px 30px rgba(200, 240, 75, 0.2);
 }
 
