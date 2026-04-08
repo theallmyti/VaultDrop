@@ -51,9 +51,6 @@ Notes:
 - Android 8.0+ recommended
 - Instagram results may improve after logging in from Settings
 - Keep the app updated for the latest fixes and improvements
-
-Download:
-[Download APK](YOUR_APK_DOWNLOAD_LINK_HERE)
 ```
 
 ## Overview
