@@ -4,27 +4,31 @@ const mobileMenu = document.querySelector('.mobile-menu');
 const mobileMenuSummary = mobileMenu?.querySelector('summary');
 const mobileMenuLinks = mobileMenu?.querySelectorAll('a') ?? [];
 
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in-view');
-      }
-    });
-  },
-  {
-    threshold: 0.16,
-    rootMargin: '0px 0px -60px 0px',
-  }
-);
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+        }
+      });
+    },
+    {
+      threshold: 0.16,
+      rootMargin: '0px 0px -60px 0px',
+    }
+  );
 
-reveals.forEach((el) => observer.observe(el));
+  reveals.forEach((el) => observer.observe(el));
+} else {
+  reveals.forEach((el) => el.classList.add('in-view'));
+}
 
 if (mobileMenu && mobileMenuSummary) {
-  mobileMenuSummary.addEventListener('click', (event) => {
-    event.preventDefault();
-    const isOpen = mobileMenu.hasAttribute('open');
-    mobileMenu.toggleAttribute('open', !isOpen);
+  mobileMenuSummary.setAttribute('aria-expanded', String(mobileMenu.hasAttribute('open')));
+
+  mobileMenu.addEventListener('toggle', () => {
+    mobileMenuSummary.setAttribute('aria-expanded', String(mobileMenu.hasAttribute('open')));
   });
 
   mobileMenuLinks.forEach((link) => {

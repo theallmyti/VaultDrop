@@ -116,6 +116,7 @@ img {
   padding: 0.9rem 1rem;
   border-radius: 999px;
   pointer-events: auto;
+  overflow: visible;
 }
 
 .brand {
@@ -1099,6 +1100,40 @@ main {
   .screenshot-grid,
   .footer-links {
     grid-template-columns: 1fr;
+  }
+
+  .timeline {
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+
+  .timeline::before {
+    left: 0.62rem;
+  }
+
+  .timeline-item,
+  .timeline-item.reverse {
+    display: block;
+    position: relative;
+    padding-left: 1.45rem;
+  }
+
+  .timeline-node,
+  .timeline-item.reverse .timeline-node {
+    position: absolute;
+    left: 0;
+    top: 1.35rem;
+    margin: 0;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .timeline-card,
+  .timeline-item.reverse .timeline-card {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: auto;
   }
 
   .hero-showcase,
