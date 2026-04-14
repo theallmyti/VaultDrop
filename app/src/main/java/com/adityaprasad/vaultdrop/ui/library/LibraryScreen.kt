@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -127,7 +128,7 @@ fun LibraryScreen(
                         onClick = {
                             showMultipleDeleteDialog = true
                         },
-                        modifier = Modifier.align(Alignment.CenterEnd).padding(end = 48.dp)
+                        modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         Icon(imageVector = Icons.Outlined.Delete, contentDescription = "Delete", tint = StatusError)
                     }
@@ -185,7 +186,9 @@ fun LibraryScreen(
                                     fontFamily = DmSans,
                                     fontWeight = FontWeight.Light,
                                     fontSize = 14.sp,
-                                    color = TextTertiary
+                                    color = TextTertiary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             innerTextField()

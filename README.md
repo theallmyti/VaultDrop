@@ -1,4 +1,4 @@
-# VaultDrop (Post-downloader)
+# VaultDrop
 
 ![CI](https://img.shields.io/badge/CI-passing-brightgreen)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)
@@ -8,63 +8,42 @@
 ![Room](https://img.shields.io/badge/Room-Database-6C63FF)
 ![Hilt](https://img.shields.io/badge/Hilt-DI-0F9D58)
 ![Media3](https://img.shields.io/badge/Media3-ExoPlayer-FF6F00)
-![Coil](https://img.shields.io/badge/Coil-Image%20Loading-03A9F4)
+![Convex](https://img.shields.io/badge/Backend-Convex-2C2C2C)
 
-VaultDrop is an Android app built in Kotlin + Jetpack Compose for saving and managing media links from Instagram and YouTube, with built-in downloading, bookmarking, and preview workflows.
+VaultDrop is an Android app for saving and downloading Instagram and YouTube content with a local-first experience, cloud bookmark sync, and in-app preview playback.
 
-## Download APK
+## Download
 
-- [Download Latest APK](https://github.com/theallmyti/VaultDrop/releases/download/app/VaultDrop-arm64-v8a-debug-1.0.0.apk)
+- [Latest APK](https://github.com/theallmyti/VaultDrop/releases/download/app/VaultDrop-arm64-v8a-debug-1.0.0.apk)
+- [Project Website](https://theallmyti.github.io/VaultDrop/)
 
-## Website
+## Highlights
 
-- [Website](https://theallmyti.github.io/VaultDrop/)
-
-## Overview
-
-VaultDrop focuses on a clean mobile-first workflow:
-- Share an Instagram/YouTube link to VaultDrop
-- Choose Download or Save Link
-- Track progress in Downloads
-- View media in Library
-- Manage saved links in Bookmarks (Vault)
-
-The app includes:
-- Download queue and progress tracking
-- Bookmarks with thumbnail previews
-- In-app preview flow for saved links
-- Taggable notes for bookmarks
-- Settings actions to repair links/thumbnails and clear data
-
-## Core Features
-
-- Share-receiver flow (`ACTION_SEND`) for links
-- Platform detection (Instagram, YouTube)
-- Download management with status + progress
-- Library and player viewers
-- Bookmarks grid with search and quick actions
-- Long-press context actions (preview/browser/copy/refresh/delete)
-- URL normalization for Instagram share URLs (`igsh` cleanup)
-- Thumbnail backfill and refresh logic for old bookmarks
-- Settings-managed quick tags for bookmark notes
-- Optional Instagram session login in-app for authenticated extraction
+- Fast share-to-save flow (instant local save, background enrichment)
+- Download queue with progress and final media in Library
+- Bookmarks with tags, preview, and cloud sync
+- Cloud backup account flow (password + OTP verification)
+- Password reset via OTP
+- Instagram session capture page for stronger extraction
+- Resend OTP cooldown on UI and backend
 
 ## Tech Stack
 
-- Kotlin
-- Jetpack Compose
-- MVVM + Repository pattern
-- Room (local persistence)
-- Hilt (DI)
+- Kotlin + Jetpack Compose
+- MVVM + Repository
+- Room (local data)
+- Hilt (dependency injection)
+- Retrofit + OkHttp
 - Media3 / ExoPlayer
-- Coil (image loading)
-- Foreground service for downloads
+- Convex backend (`convex.site` HTTP routes)
+- Resend / SMTP mail path for OTP delivery
 
-## App Structure
+## Project Structure
 
 ```text
 app/src/main/java/com/adityaprasad/vaultdrop/
   data/
+    api/
     db/
     downloader/
     repository/
@@ -72,91 +51,137 @@ app/src/main/java/com/adityaprasad/vaultdrop/
     model/
     usecase/
   ui/
-    home/
-    downloads/
-    library/
+    auth/
     bookmarks/
+    components/
+    downloads/
+    home/
+    library/
     player/
-    share/
     settings/
+    share/
+convex/
+  auth.ts
+  bookmarks.ts
+  email.ts
+  http.ts
+  schema.ts
 ```
 
-## Flowchart
+## App Flow Chart
 
 ```mermaid
 flowchart TD
-    A[User shares URL from Instagram/YouTube] --> B[ShareReceiverActivity]
-    B --> C{Action selected}
+    A[User shares Instagram/YouTube link] --> B[ShareReceiverActivity]
+    B --> C{Choose action}
 
-    C -->|Download| D[Create DownloadItem]
-    D --> E[DownloadService + Downloader]
-    E --> F[Downloads Screen Progress]
-    F --> G[Library Screen]
-    G --> H[In-app Player]
+    C -->|Download| D[Create download item]
+    D --> E[DownloadService + platform downloader]
+    E --> F[Downloads tab progress]
+    F --> G[Library tab]
+    G --> H[Video/Image player]
 
-    C -->|Save Link| I[Normalize URL + detect platform]
-    I --> J[Fetch metadata + thumbnail]
-    J --> K[Create BookmarkItem]
-    K --> L[Bookmarks Grid]
+    C -->|Save Link| I[Instant local bookmark save]
+    I --> J[Background metadata enrichment]
+    J --> K[Optional cloud sync]
+    K --> L[Bookmarks tab]
 
-    L --> M{Long press action}
-    M -->|Preview in app| N[BookmarkPreviewActivity]
-    M -->|Open in browser| O[External Browser]
-    M -->|Copy link| P[Clipboard]
-    M -->|Refresh preview| Q[Re-extract thumbnail]
-    M -->|Delete| R[Delete bookmark]
+    L --> M{Bookmark actions}
+    M -->|Preview| N[BookmarkPreviewActivity]
+    M -->|Delete local| O[Room delete]
+    M -->|Delete cloud| P[Convex bookmarks/delete]
+    M -->|Open external| Q[Browser]
 
-    S[Settings] --> T[Repair Instagram Links & Thumbnails]
-    T --> U[Normalize saved URLs + refresh thumbs]
+    R[Settings] --> S[Cloud Backup Auth]
+    S --> T[Sign in / Sign up]
+    T --> U[Password account creation]
+    U --> V[OTP verification page]
+    V --> W[Resend OTP with 60s cooldown]
+    W --> X[Verify OTP]
+    X --> Y[Session token stored locally]
 
-    S --> V[Instagram Session Login]
-    V --> W[Save cookie/session]
-    W --> X[Use authenticated extraction path]
+    R --> Z[Instagram Session Page]
+    Z --> AA[WebView login]
+    AA --> AB[Cookie/session capture]
+    AB --> AC[Authenticated Instagram extraction path]
 ```
 
-## UI Screenshots
+## Auth and Cloud Backup Flow
 
-### Home
-<p align="center"><img src="UI-screenshots/HomePage.png" width="280" alt="Home screenshot" /></p>
+- Sign in uses email + password.
+- Sign up is a separate page.
+- After create account, user moves to OTP verification page.
+- OTP page shows entered email and an Edit action to return to sign-up form.
+- Resend OTP is available with 60-second cooldown.
+- Password reset also uses OTP.
+- Successful auth stores token in shared preferences and enables cloud bookmark sync.
 
-### Downloads
-<p align="center"><img src="UI-screenshots/DownloadPage.png" width="280" alt="Downloads screenshot" /></p>
+## Build and Run
 
-### Library
-<p align="center"><img src="UI-screenshots/LibraryPage.png" width="280" alt="Library screenshot" /></p>
-
-### Bookmarks
-<p align="center"><img src="UI-screenshots/BookmarkPage.png" width="280" alt="Bookmarks screenshot" /></p>
-
-### Settings (1)
-<p align="center"><img src="UI-screenshots/SettingPage1.png" width="280" alt="Settings screenshot 1" /></p>
-
-### Settings (2)
-<p align="center"><img src="UI-screenshots/SettingPage2.png" width="280" alt="Settings screenshot 2" /></p>
-
-## Setup
-
-1. Clone the repository.
-2. Open in Android Studio / VS Code with Android tooling.
-3. Ensure Android SDK and Gradle are configured.
-4. Build and run on API 26+ device/emulator.
+1. Clone repo
+2. Open in Android Studio or VS Code + Android tooling
+3. Ensure Android SDK is installed
+4. Set `convex.baseUrl` in `local.properties` if needed
 
 ```bash
-./gradlew assembleDebug
-```
-
-Windows:
-
-```bat
 gradlew.bat assembleDebug
 ```
 
+For Kotlin compile check:
+
+```bash
+gradlew.bat :app:compileDebugKotlin --no-daemon
+```
+
+## Convex Backend Setup
+
+1. Install dependencies
+
+```bash
+npm install
+```
+
+2. Configure deployment (`.env.local` should include `CONVEX_DEPLOYMENT`)
+3. Push functions
+
+```bash
+npx convex dev --once
+```
+
+### OTP Mail Options
+
+- SMTP (recommended for personal inbox sender):
+  - `SMTP_USER`
+  - `SMTP_PASS` (App Password)
+  - `SMTP_FROM`
+  - Optional: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`
+- Resend fallback:
+  - `RESEND_API_KEY`
+  - Optional: `RESEND_FROM`
+
+## Screenshots
+
+### Home
+<p align="center"><img src="UI-screenshots/HomePage.png" width="280" alt="Home" /></p>
+
+### Downloads
+<p align="center"><img src="UI-screenshots/DownloadPage.png" width="280" alt="Downloads" /></p>
+
+### Library
+<p align="center"><img src="UI-screenshots/LibraryPage.png" width="280" alt="Library" /></p>
+
+### Bookmarks
+<p align="center"><img src="UI-screenshots/BookmarkPage.png" width="280" alt="Bookmarks" /></p>
+
+### Settings
+<p align="center"><img src="UI-screenshots/SettingPage1.png" width="280" alt="Settings 1" /></p>
+
 ## Notes
 
-- Instagram extraction behavior can vary by region/session/privacy.
-- For some links, authenticated session improves media/thumbnail extraction.
-- Settings includes maintenance actions for URL repair and thumbnail refresh.
+- Instagram behavior can vary by region, login state, and link privacy.
+- If OTP fails, check SMTP/Resend env vars and redeploy Convex functions.
+- For best OTP security, rotate app passwords when exposed.
 
----
+## License
 
-Aditya Prasad
+Apache 2.0

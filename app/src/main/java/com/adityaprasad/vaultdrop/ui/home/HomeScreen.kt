@@ -31,7 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adityaprasad.vaultdrop.domain.model.DownloadItem
@@ -49,6 +52,8 @@ import com.adityaprasad.vaultdrop.domain.model.Platform
 import com.adityaprasad.vaultdrop.data.repository.DownloadRepository
 import com.adityaprasad.vaultdrop.service.DownloadService
 import com.adityaprasad.vaultdrop.ui.theme.*
+import com.adityaprasad.vaultdrop.ui.components.AppErrorDialog
+import com.adityaprasad.vaultdrop.ui.components.ShimmerPlaceholder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,12 +70,27 @@ fun HomeScreen(
     var selectedQuality by remember { mutableStateOf("720p") }
     var detectedPlatform by remember { mutableStateOf<Platform?>(null) }
     var showSuccess by remember { mutableStateOf(false) }
+    var downloadError by remember { mutableStateOf<String?>(null) }
+    var lastDownloadTapMs by remember { mutableStateOf(0L) }
+    var showInitialSkeleton by rememberSaveable { mutableStateOf(true) }
 
-    // Detect platform as user types
-    detectedPlatform = if (urlText.isNotBlank()) {
-        val platform = Platform.detect(urlText)
-        if (platform != Platform.UNSUPPORTED) platform else null
-    } else null
+    LaunchedEffect(Unit) {
+        delay(260)
+        showInitialSkeleton = false
+    }
+
+    LaunchedEffect(urlText) {
+        delay(250)
+        detectedPlatform = if (urlText.isNotBlank()) {
+            val platform = Platform.detect(urlText)
+            if (platform != Platform.UNSUPPORTED) platform else null
+        } else null
+    }
+
+    if (showInitialSkeleton) {
+        HomeSkeleton()
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -115,7 +135,7 @@ fun HomeScreen(
                 tint = TextTertiary,
                 modifier = Modifier
                     .padding(start = 12.dp)
-                    .size(20.dp)
+                    .size(18.dp)
             )
 
             BasicTextField(
@@ -126,24 +146,26 @@ fun HomeScreen(
                 },
                 singleLine = true,
                 textStyle = TextStyle(
-                    fontFamily = JetBrainsMono,
-                    fontWeight = FontWeight.Light,
-                    fontSize = 13.sp,
+                    fontFamily = DmSans,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
                     color = TextPrimary
                 ),
                 cursorBrush = SolidColor(AccentPrimary),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 16.dp),
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
                 decorationBox = { innerTextField ->
                     Box {
                         if (urlText.isEmpty()) {
                             Text(
-                                text = "https://www.instagram.com/reel/...",
-                                fontFamily = JetBrainsMono,
+                                text = "Paste Instagram or YouTube link...",
+                                fontFamily = DmSans,
                                 fontWeight = FontWeight.Light,
-                                fontSize = 13.sp,
-                                color = TextTertiary
+                                fontSize = 14.sp,
+                                color = TextTertiary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         innerTextField()
@@ -165,7 +187,7 @@ fun HomeScreen(
                     imageVector = Icons.Outlined.ContentPaste,
                     contentDescription = "Paste",
                     tint = AccentPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -260,8 +282,12 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .clip(PillShape)
                 .background(if (isValidUrl) AccentPrimary else AccentPrimary.copy(alpha = 0.3f))
-                .then(
-                    if (isValidUrl) Modifier.clickable {
+                .clickable {
+                    val now = System.currentTimeMillis()
+                    if (now - lastDownloadTapMs < 800) return@clickable
+                    lastDownloadTapMs = now
+
+                    if (isValidUrl) {
                         val platform = Platform.detect(urlText)
                         val downloadId = UUID.randomUUID().toString()
                         val item = DownloadItem(
@@ -272,13 +298,27 @@ fun HomeScreen(
                             status = DownloadStatus.QUEUED,
                             createdAt = System.currentTimeMillis()
                         )
-                        coroutineScope.launch { repository.insertDownload(item) }
-                        DownloadService.start(context, downloadId, urlText.trim(), selectedQuality)
-                        Toast.makeText(context, "Added to queue ↓", Toast.LENGTH_SHORT).show()
-                        showSuccess = true
-                        urlText = ""
-                    } else Modifier
-                )
+                        coroutineScope.launch {
+                            runCatching { repository.insertDownload(item) }
+                                .onSuccess {
+                                    runCatching {
+                                        DownloadService.start(context, downloadId, urlText.trim(), selectedQuality)
+                                    }.onSuccess {
+                                        Toast.makeText(context, "Added to queue ↓", Toast.LENGTH_SHORT).show()
+                                        showSuccess = true
+                                        urlText = ""
+                                    }.onFailure { error ->
+                                        downloadError = error.message ?: "Failed to start download"
+                                    }
+                                }
+                                .onFailure { error ->
+                                    downloadError = error.message ?: "Failed to queue download"
+                                }
+                        }
+                    } else if (urlText.isNotBlank()) {
+                        downloadError = "Paste a valid Instagram or YouTube link"
+                    }
+                }
                 .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -303,6 +343,12 @@ fun HomeScreen(
                 textAlign = TextAlign.Center
             )
         }
+
+        AppErrorDialog(
+            visible = downloadError != null,
+            message = downloadError.orEmpty(),
+            onDismiss = { downloadError = null }
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -354,5 +400,85 @@ private fun SupportedChip(text: String) {
             fontSize = 11.sp,
             color = TextSecondary
         )
+    }
+}
+
+@Composable
+private fun HomeSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgPrimary)
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ShimmerPlaceholder(
+            modifier = Modifier
+                .fillMaxWidth(0.45f)
+                .height(32.dp)
+                .clip(PillShape)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ShimmerPlaceholder(
+            modifier = Modifier
+                .fillMaxWidth(0.55f)
+                .height(14.dp)
+                .clip(PillShape)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        ShimmerPlaceholder(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(CardShape)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ShimmerPlaceholder(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(PillShape)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 100.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ShimmerPlaceholder(
+                modifier = Modifier
+                    .fillMaxWidth(0.38f)
+                    .height(12.dp)
+                    .clip(PillShape)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(2) {
+                    ShimmerPlaceholder(
+                        modifier = Modifier
+                            .size(width = 120.dp, height = 28.dp)
+                            .clip(PillShape)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(2) {
+                    ShimmerPlaceholder(
+                        modifier = Modifier
+                            .size(width = 120.dp, height = 28.dp)
+                            .clip(PillShape)
+                    )
+                }
+            }
+        }
     }
 }

@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,6 +60,16 @@ val onboardingPages = listOf(
         title = "Your personal vault",
         body = "All your saved videos in a clean library, ready to play offline anytime"
     ),
+    OnboardingPage(
+        icon = Icons.Outlined.AccountCircle,
+        title = "Cloud Backup",
+        body = "Sign in via settings to securely sync and backup your bookmarks across devices."
+    ),
+    OnboardingPage(
+        icon = Icons.Outlined.CheckCircle,
+        title = "Organize with Tags",
+        body = "Create custom tags to easily filter and find your bookmarks later."
+    )
 )
 
 @OptIn(ExperimentalFoundationApi::class)

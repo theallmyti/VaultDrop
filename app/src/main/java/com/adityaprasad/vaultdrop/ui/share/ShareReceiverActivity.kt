@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adityaprasad.vaultdrop.data.repository.BookmarkRepository
 import com.adityaprasad.vaultdrop.data.repository.DownloadRepository
+import com.adityaprasad.vaultdrop.data.api.ConvexApiService
+import com.adityaprasad.vaultdrop.data.api.SyncBookmarkItem
+import com.adityaprasad.vaultdrop.data.api.SyncBookmarksRequest
 import com.adityaprasad.vaultdrop.domain.model.BookmarkItem
 import com.adityaprasad.vaultdrop.domain.model.DownloadItem
 import com.adityaprasad.vaultdrop.domain.model.DownloadStatus
@@ -62,7 +65,8 @@ import com.adityaprasad.vaultdrop.util.InstagramUrlUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
@@ -81,17 +85,21 @@ class ShareReceiverActivity : ComponentActivity() {
     @Inject
     lateinit var youtubeDownloader: YouTubeDownloader
 
+    @Inject
+    lateinit var convexApi: ConvexApiService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val sharedUrl = extractUrl(intent)
         val normalizedSharedUrl = sharedUrl?.let { InstagramUrlUtils.normalize(it) }
         val prefs = getSharedPreferences("vaultdrop_prefs", Context.MODE_PRIVATE)
-        val availableTags = prefs.getString("bookmark_tags", "")
+        val availableTags = (prefs.getString("bookmark_tags", "")
             .orEmpty()
             .split("|")
             .map { it.trim() }
-            .filter { it.isNotEmpty() }
+            .filter { it.isNotEmpty() } + listOf("IG", "YT"))
+            .distinctBy { it.lowercase() }
 
         setContent {
             VaultDropTheme {
@@ -161,46 +169,114 @@ class ShareReceiverActivity : ComponentActivity() {
         val normalizedUrl = InstagramUrlUtils.normalize(url)
         val platform = Platform.detect(normalizedUrl)
         val username = bookmarkRepository.extractUsername(normalizedUrl)
+        val parsedTags = extractTagsFromComment(comment)
+            .map { normalizeTag(it) }
+            .filter { it.isNotBlank() }
+            .distinct()
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            var finalUsername = username
-            var thumbnailUrl: String? = null
+            val initialThumbnail = when (platform) {
+                Platform.YOUTUBE -> buildYouTubeThumbnailUrl(normalizedUrl)
+                else -> null
+            } ?: buildFaviconUrl(normalizedUrl)
 
-            try {
+            val localBookmark = BookmarkItem(
+                id = bookmarkRepository.getBookmarkByUrl(normalizedUrl)?.id ?: UUID.randomUUID().toString(),
+                url = normalizedUrl,
+                username = username,
+                comment = comment.trim(),
+                platform = platform,
+                thumbnailUrl = initialThumbnail,
+                createdAt = System.currentTimeMillis(),
+                tags = parsedTags
+            )
+
+            val saveResult = runCatching { bookmarkRepository.insertBookmark(localBookmark) }
+            if (saveResult.isFailure) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ShareReceiverActivity,
+                        saveResult.exceptionOrNull()?.message ?: "Failed to save link",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                return@launch
+            }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ShareReceiverActivity, "Link saved 🔖", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+
+            var enrichedUsername = localBookmark.username
+            var enrichedThumbnail = localBookmark.thumbnailUrl
+
+            runCatching {
+                if (enrichedUsername.isBlank() || enrichedUsername.equals("@instagram", ignoreCase = true)) {
+                    val resolvedUsername = instagramDownloader.resolveUsername(normalizedUrl)
+                    if (!resolvedUsername.isNullOrBlank()) {
+                        enrichedUsername = resolvedUsername
+                    }
+                }
+
                 when (platform) {
                     Platform.INSTAGRAM -> {
                         val (_, fetchedUsername) = instagramDownloader.getMetadata(normalizedUrl)
-                        if (finalUsername.isEmpty() && !fetchedUsername.isNullOrEmpty()) {
-                            finalUsername = normalizeUsername(fetchedUsername)
+                        if ((enrichedUsername.isBlank() || enrichedUsername.equals("@instagram", ignoreCase = true)) && !fetchedUsername.isNullOrEmpty()) {
+                            enrichedUsername = normalizeUsername(fetchedUsername)
                         }
-                        thumbnailUrl = instagramDownloader.getThumbnailUrl(normalizedUrl)
+                        val fetchedThumb = instagramDownloader.getThumbnailUrl(normalizedUrl)
+                        if (!fetchedThumb.isNullOrBlank()) {
+                            enrichedThumbnail = fetchedThumb
+                        }
                     }
                     Platform.YOUTUBE -> {
-                        thumbnailUrl = buildYouTubeThumbnailUrl(normalizedUrl)
+                        val fetchedThumb = buildYouTubeThumbnailUrl(normalizedUrl)
+                        if (!fetchedThumb.isNullOrBlank()) {
+                            enrichedThumbnail = fetchedThumb
+                        }
                     }
                     Platform.UNSUPPORTED -> Unit
                 }
-            } catch (e: Exception) {
-                // fall back gracefully
             }
 
-            if (thumbnailUrl.isNullOrEmpty()) {
-                thumbnailUrl = buildFaviconUrl(normalizedUrl)
+            if (enrichedThumbnail.isNullOrBlank()) {
+                enrichedThumbnail = buildFaviconUrl(normalizedUrl)
             }
-            
-            val bookmark = BookmarkItem(
-                id = UUID.randomUUID().toString(),
-                url = normalizedUrl,
-                username = finalUsername,
-                comment = comment.trim(),
-                platform = platform,
-                thumbnailUrl = thumbnailUrl,
-                createdAt = System.currentTimeMillis()
-            )
-            bookmarkRepository.insertBookmark(bookmark)
+
+            if (enrichedThumbnail != localBookmark.thumbnailUrl && !enrichedThumbnail.isNullOrBlank()) {
+                runCatching { bookmarkRepository.updateThumbnailUrl(localBookmark.id, enrichedThumbnail) }
+            }
+            if (enrichedUsername != localBookmark.username) {
+                runCatching { bookmarkRepository.updateUsername(localBookmark.id, enrichedUsername) }
+            }
+
+            val token = getSharedPreferences("vaultdrop_prefs", Context.MODE_PRIVATE)
+                .getString("auth_token", null)
+                .orEmpty()
+                .trim()
+
+            if (token.isNotBlank()) {
+                runCatching {
+                    convexApi.syncBookmarks(
+                        SyncBookmarksRequest(
+                            token = token,
+                            bookmarks = listOf(
+                                SyncBookmarkItem(
+                                    bookmarkId = localBookmark.id,
+                                    url = localBookmark.url,
+                                    username = enrichedUsername,
+                                    comment = localBookmark.comment,
+                                    platform = localBookmark.platform.name,
+                                    thumbnailUrl = enrichedThumbnail,
+                                    createdAt = localBookmark.createdAt,
+                                    tags = localBookmark.tags,
+                                ),
+                            ),
+                        ),
+                    )
+                }
+            }
         }
-
-        Toast.makeText(this, "Link saved 🔖", Toast.LENGTH_SHORT).show()
-        finish()
     }
 
     private fun buildYouTubeThumbnailUrl(url: String): String? {
@@ -235,6 +311,17 @@ class ShareReceiverActivity : ComponentActivity() {
         val cleaned = raw.trim().removePrefix("@")
         return if (cleaned.isBlank()) "" else "@$cleaned"
     }
+
+    private fun extractTagsFromComment(comment: String): List<String> {
+        return Regex("#([A-Za-z0-9_]+)")
+            .findAll(comment)
+            .map { it.groupValues[1] }
+            .toList()
+    }
+
+    private fun normalizeTag(raw: String): String {
+        return raw.trim().lowercase().removePrefix("#").replace(" ", "_")
+    }
 }
 
 private enum class ShareMode { CHOOSE, LOADING_FORMATS, DOWNLOAD, SAVE_LINK }
@@ -252,7 +339,16 @@ fun ShareReceiverSheet(
     var visible by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf(ShareMode.CHOOSE) }
     var comment by remember { mutableStateOf("") }
-    var selectedTags by remember { mutableStateOf(setOf<String>()) }
+    val defaultPlatformTags = remember(url) {
+        val detected = url?.let { Platform.detect(it) } ?: Platform.UNSUPPORTED
+        when (detected) {
+            Platform.INSTAGRAM -> setOf("IG")
+            Platform.YOUTUBE -> setOf("YT")
+            Platform.UNSUPPORTED -> emptySet()
+        }
+    }
+    var selectedTags by remember(defaultPlatformTags) { mutableStateOf(defaultPlatformTags) }
+    var saveModeInitialized by remember { mutableStateOf(false) }
     
     var videoFormats by remember { mutableStateOf<List<VideoFormat>>(emptyList()) }
     var selectedFormatId by remember { mutableStateOf("") }
@@ -265,6 +361,9 @@ fun ShareReceiverSheet(
     }
 
     val platform = url?.let { Platform.detect(it) } ?: Platform.UNSUPPORTED
+    val allQuickTags = remember(availableTags, defaultPlatformTags) {
+        (availableTags + defaultPlatformTags.toList()).distinctBy { it.lowercase() }
+    }
 
     Box(
         modifier = Modifier
@@ -399,7 +498,14 @@ fun ShareReceiverSheet(
                                     title = "Save Link",
                                     subtitle = "Bookmark it",
                                     modifier = Modifier.weight(1f),
-                                    onClick = { mode = ShareMode.SAVE_LINK }
+                                    onClick = {
+                                        mode = ShareMode.SAVE_LINK
+                                        if (!saveModeInitialized) {
+                                            selectedTags = defaultPlatformTags
+                                            comment = mergeCommentAndTags(comment, selectedTags)
+                                            saveModeInitialized = true
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -466,7 +572,7 @@ fun ShareReceiverSheet(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            if (availableTags.isNotEmpty()) {
+                            if (allQuickTags.isNotEmpty()) {
                                 Text(
                                     text = "Quick tags",
                                     fontFamily = DmSans,
@@ -479,7 +585,7 @@ fun ShareReceiverSheet(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    items(availableTags) { tag ->
+                                    items(allQuickTags) { tag ->
                                         val isSelected = selectedTags.contains(tag)
                                         Box(
                                             modifier = Modifier

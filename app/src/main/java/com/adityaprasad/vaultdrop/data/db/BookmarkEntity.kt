@@ -11,5 +11,6 @@ data class BookmarkEntity(
     val comment: String,         // User's personal note
     val platform: String,        // "INSTAGRAM" | "YOUTUBE"
     val thumbnailUrl: String?,   // Optional thumbnail URL
-    val createdAt: Long
+    val createdAt: Long,
+    val tagsCsv: String = ""     // Comma-separated tags
 )

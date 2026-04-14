@@ -1,0 +1,26 @@
+{
+  "name": "vaultdrop",
+  "version": "1.0.0",
+  "description": "![CI](https://img.shields.io/badge/CI-passing-brightgreen)\r ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)\r ![Android](https://img.shields.io/badge/Android-26%2B-3DDC84)\r ![Kotlin](https://img.shields.io/badge/Kotlin-2D7DF6?logo=kotlin&logoColor=white)\r ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?logo=jetpackcompose&logoColor=white)\r ![Room](https://img.shields.io/badge/Room-Database-6C63FF)\r ![Hilt](https://img.shields.io/badge/Hilt-DI-0F9D58)\r ![Media3](https://img.shields.io/badge/Media3-ExoPlayer-FF6F00)\r ![Coil](https://img.shields.io/badge/Coil-Image%20Loading-03A9F4)",
+  "main": "test_cobalt.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theallmyti/VaultDrop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/theallmyti/VaultDrop/issues"
+  },
+  "homepage": "https://github.com/theallmyti/VaultDrop#readme",
+  "dependencies": {
+    "convex": "^1.35.1",
+    "nodemailer": "^8.0.5",
+    "resend": "^6.10.0"
+  }
+}

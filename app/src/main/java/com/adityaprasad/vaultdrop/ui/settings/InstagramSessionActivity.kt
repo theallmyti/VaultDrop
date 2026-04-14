@@ -1,7 +1,10 @@
 package com.adityaprasad.vaultdrop.ui.settings
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -73,6 +76,9 @@ private fun InstagramSessionScreen(
     onSessionSaved: () -> Unit
 ) {
     var loading by remember { mutableStateOf(true) }
+    var sessionSaved by remember { mutableStateOf(false) }
+    var loadError by remember { mutableStateOf<String?>(null) }
+    var blankRecoveryAttempted by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -81,14 +87,23 @@ private fun InstagramSessionScreen(
     ) {
         AndroidView(
             factory = { context ->
-                CookieManager.getInstance().setAcceptCookie(true)
+                // Configure CookieManager BEFORE creating WebView
+                val cookieManager = CookieManager.getInstance()
+                cookieManager.setAcceptCookie(true)
+
                 WebView(context).apply {
+                    cookieManager.setAcceptThirdPartyCookies(this, true)
+
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
+                    settings.databaseEnabled = true
                     settings.cacheMode = WebSettings.LOAD_DEFAULT
                     settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                    settings.loadsImagesAutomatically = true
+                    settings.useWideViewPort = true
+                    settings.loadWithOverviewMode = true
                     settings.userAgentString =
-                        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
+                        "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
 
                     webChromeClient = object : WebChromeClient() {
                         override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -97,13 +112,58 @@ private fun InstagramSessionScreen(
                     }
 
                     webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            return false
+                        }
+
+                        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                            super.onPageStarted(view, url, favicon)
+                            loading = true
+                            loadError = null
+                        }
+
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)
+                            loading = false
+
+                            val pageLooksBlank = (view?.contentHeight ?: 0) <= 1
+                            if (pageLooksBlank && !blankRecoveryAttempted) {
+                                blankRecoveryAttempted = true
+                                loading = true
+                                view?.postDelayed({
+                                    view.loadUrl("https://www.instagram.com/accounts/login/?force_classic_login=1")
+                                }, 250)
+                                return
+                            }
+                            
+                            // Try to extract session from multiple possible cookie sources
                             val cookieRaw = CookieManager.getInstance().getCookie("https://www.instagram.com/")
-                            val hasSession = cookieRaw?.contains("sessionid=") == true
-                            if (hasSession) {
-                                InstagramSessionManager.saveCookieHeader(context, cookieRaw.orEmpty())
+                            val cookieWww = CookieManager.getInstance().getCookie("https://www.instagram.com")
+                            val combinedCookies = listOfNotNull(cookieRaw, cookieWww).joinToString("; ")
+                            
+                            val hasSession = combinedCookies.contains("sessionid=")
+                            
+                            if (hasSession && !sessionSaved) {
+                                sessionSaved = true
+                                // Save the most complete cookie string available
+                                val cookieToSave = if (cookieRaw?.isNotEmpty() == true) cookieRaw else combinedCookies
+                                InstagramSessionManager.saveCookieHeader(context, cookieToSave)
                                 onSessionSaved()
+                            }
+                        }
+
+                        override fun onReceivedError(
+                            view: WebView?,
+                            request: WebResourceRequest?,
+                            error: WebResourceError?
+                        ) {
+                            super.onReceivedError(view, request, error)
+                            if (request?.isForMainFrame == true) {
+                                loading = false
+                                loadError = error?.description?.toString() ?: "Failed to load Instagram"
                             }
                         }
                     }
@@ -118,6 +178,19 @@ private fun InstagramSessionScreen(
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = AccentPrimary
+            )
+        }
+
+        if (!loading && loadError != null) {
+            Text(
+                text = "Could not load Instagram login. Check network and try again.",
+                fontFamily = DmSans,
+                fontWeight = FontWeight.Light,
+                fontSize = 12.sp,
+                color = TextPrimary.copy(alpha = 0.85f),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 20.dp)
             )
         }
 

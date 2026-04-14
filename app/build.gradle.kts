@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,18 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val convexBaseUrl = localProperties.getProperty("convex.baseUrl")
+    ?: providers.gradleProperty("convex.baseUrl").orNull
+    ?: providers.environmentVariable("CONVEX_BASE_URL").orNull
+    ?: "https://replace-me-with-your-convex-url.convex.site/"
 
 android {
     namespace = "com.adityaprasad.vaultdrop"
@@ -16,6 +30,8 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+        buildConfigField("String", "CONVEX_BASE_URL", "\"$convexBaseUrl\"")
+        resourceConfigurations += listOf("en")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     applicationVariants.all {
@@ -59,7 +76,7 @@ android {
 
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
         resources {
             excludes += "META-INF/DEPENDENCIES"
@@ -70,6 +87,9 @@ android {
             excludes += "META-INF/NOTICE.txt"
             excludes += "META-INF/notice.txt"
             excludes += "META-INF/ASL2.0"
+            excludes += "META-INF/*.kotlin_module"
+            excludes += "META-INF/AL2.0"
+            excludes += "META-INF/LGPL2.1"
         }
     }
 }
@@ -119,7 +139,6 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
-    implementation(libs.coil.video)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
@@ -127,16 +146,9 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
-    // WorkManager
-    implementation(libs.androidx.work.runtime.ktx)
-
     // YoutubeDL
     implementation("io.github.junkfood02.youtubedl-android:library:0.18.1")
     implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1") // Optional: for ffmpeg support
-    implementation("io.github.junkfood02.youtubedl-android:aria2c:0.18.1") // Optional: for aria2c support
-
-    // Graphics Path (Force 16KB Android 15 alignment)
-    implementation("androidx.graphics:graphics-path:1.0.1")
 
     // App Lock
     implementation("androidx.biometric:biometric:1.2.0-alpha05")

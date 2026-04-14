@@ -7,7 +7,8 @@ data class BookmarkItem(
     val comment: String,
     val platform: Platform,
     val thumbnailUrl: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val tags: List<String> = emptyList()
 ) {
     val sourceDomain: String
         get() = when (platform) {

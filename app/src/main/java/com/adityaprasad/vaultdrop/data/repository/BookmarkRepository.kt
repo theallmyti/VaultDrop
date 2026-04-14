@@ -31,6 +31,10 @@ class BookmarkRepository @Inject constructor(
         dao.insertBookmark(item.toEntity())
     }
 
+    suspend fun getBookmarkByUrl(url: String): BookmarkItem? {
+        return dao.getBookmarkByUrl(url)?.toDomainModel()
+    }
+
     suspend fun deleteBookmark(id: String) {
         dao.deleteById(id)
     }
@@ -45,6 +49,10 @@ class BookmarkRepository @Inject constructor(
 
     suspend fun updateThumbnailUrl(id: String, thumbnailUrl: String) {
         dao.updateThumbnailUrl(id, thumbnailUrl)
+    }
+
+    suspend fun updateUsername(id: String, username: String) {
+        dao.updateUsername(id, username)
     }
 
     suspend fun updateUrl(id: String, url: String) {
@@ -78,7 +86,8 @@ class BookmarkRepository @Inject constructor(
         comment = comment,
         platform = try { Platform.valueOf(platform) } catch (_: Exception) { Platform.UNSUPPORTED },
         thumbnailUrl = thumbnailUrl,
-        createdAt = createdAt
+        createdAt = createdAt,
+        tags = if (tagsCsv.isBlank()) emptyList() else tagsCsv.split(",")
     )
 
     private fun BookmarkItem.toEntity(): BookmarkEntity = BookmarkEntity(
@@ -88,6 +97,7 @@ class BookmarkRepository @Inject constructor(
         comment = comment,
         platform = platform.name,
         thumbnailUrl = thumbnailUrl,
-        createdAt = createdAt
+        createdAt = createdAt,
+        tagsCsv = tags.joinToString(",")
     )
 }

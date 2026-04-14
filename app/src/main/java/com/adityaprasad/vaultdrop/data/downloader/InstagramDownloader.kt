@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -156,10 +157,41 @@ class InstagramDownloader @Inject constructor(
                 }
             }
             
-            Pair(title, username)
+            if (username.isNullOrEmpty()) {
+                username = fetchUsernameViaOEmbed(pageUrl)
+            }
+
+            val normalizedUsername = username
+                ?.trim()
+                ?.removePrefix("@")
+                ?.takeIf { it.isNotBlank() }
+                ?.let { "@$it" }
+
+            Pair(title, normalizedUsername)
         } catch (_: Exception) {
             Pair(null, null)
         }
+    }
+
+    private fun fetchUsernameViaOEmbed(pageUrl: String): String? {
+        return runCatching {
+            val encoded = URLEncoder.encode(pageUrl, "UTF-8")
+            val oEmbedUrl = "https://www.instagram.com/oembed/?url=$encoded"
+
+            val request = Request.Builder()
+                .url(oEmbedUrl)
+                .header("User-Agent", DESKTOP_UA)
+                .build()
+
+            val response = httpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@runCatching null
+
+            val body = response.body?.string().orEmpty()
+            val json = JSONObject(body)
+            val authorUrl = json.optString("author_url")
+            val profileMatch = Regex("instagram\\.com/([^/]+)/?").find(authorUrl)
+            profileMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }
+        }.getOrNull()
     }
 
     suspend fun getThumbnailUrl(pageUrl: String): String? = withContext(Dispatchers.IO) {
@@ -186,9 +218,40 @@ class InstagramDownloader @Inject constructor(
         }
     }
 
+    suspend fun resolveUsername(pageUrl: String): String? = withContext(Dispatchers.IO) {
+        val normalized = InstagramUrlUtils.normalize(pageUrl)
+
+        runCatching { extractVideoUrl(normalized)?.username }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { return@withContext formatUsername(it) }
+
+        runCatching { getMetadata(normalized).second }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { return@withContext formatUsername(it) }
+
+        val pathUsername = runCatching {
+            val uri = android.net.Uri.parse(normalized)
+            val host = uri.host.orEmpty().lowercase()
+            if (host.contains("instagram.com")) {
+                val firstPath = uri.pathSegments.firstOrNull()?.trim().orEmpty()
+                firstPath.takeIf { it.isNotBlank() && it !in setOf("p", "reel", "tv", "reels", "stories", "explore", "share") }
+            } else null
+        }.getOrNull()
+
+        pathUsername?.let { return@withContext formatUsername(it) }
+        null
+    }
+
     private fun extractShortcode(url: String): String? {
         val pattern = Regex("/(?:p|reel|tv|reels)/([A-Za-z0-9_-]+)")
         return pattern.find(url)?.groupValues?.get(1)
+    }
+
+    private fun formatUsername(raw: String): String {
+        val cleaned = raw.trim().removePrefix("@").takeIf { it.isNotBlank() } ?: return raw
+        return "@$cleaned"
     }
 
     private suspend fun downloadFile(

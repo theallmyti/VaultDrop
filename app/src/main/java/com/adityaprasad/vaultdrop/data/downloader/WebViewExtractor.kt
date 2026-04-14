@@ -416,7 +416,9 @@ class WebViewExtractor @Inject constructor(
                     InstagramSessionManager.getCookieHeader(context)?.let { cookie ->
                         val cookieManager = android.webkit.CookieManager.getInstance()
                         cookieManager.setAcceptCookie(true)
+                        cookieManager.setAcceptThirdPartyCookies(webView, true) // Enable third-party cookies for this WebView
                         cookieManager.setCookie("https://www.instagram.com/", cookie)
+                        cookieManager.setCookie("https://www.instagram.com", cookie)
                         cookieManager.flush()
                     }
 
@@ -621,7 +623,9 @@ class WebViewExtractor @Inject constructor(
                     InstagramSessionManager.getCookieHeader(context)?.let { cookie ->
                         val cookieManager = android.webkit.CookieManager.getInstance()
                         cookieManager.setAcceptCookie(true)
+                        cookieManager.setAcceptThirdPartyCookies(webView, true) // Enable third-party cookies for this WebView
                         cookieManager.setCookie("https://www.instagram.com/", cookie)
+                        cookieManager.setCookie("https://www.instagram.com", cookie)
                         cookieManager.flush()
                     }
 

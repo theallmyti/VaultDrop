@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adityaprasad.vaultdrop.ui.theme.*
@@ -49,7 +50,7 @@ fun BottomNavBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -91,9 +92,10 @@ fun BottomNavBar(
                     Text(
                         text = item.label,
                         color = color,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         fontFamily = DmSans,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

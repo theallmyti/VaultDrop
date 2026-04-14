@@ -133,7 +133,7 @@ class DownloadService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_share_target_icon)
             .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(pendingIntent)
@@ -150,7 +150,7 @@ class DownloadService : Service() {
     fun sendCompletionNotification(item: DownloadItem) {
         val manager = getSystemService(NotificationManager::class.java)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_share_target_icon)
             .setContentTitle(getString(R.string.notification_download_complete, item.title))
             .setAutoCancel(true)
             .build()

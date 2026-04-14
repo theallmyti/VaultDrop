@@ -33,6 +33,9 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmarks WHERE id = :id")
     suspend fun getBookmarkById(id: String): BookmarkEntity?
 
+    @Query("SELECT * FROM bookmarks WHERE url = :url LIMIT 1")
+    suspend fun getBookmarkByUrl(url: String): BookmarkEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBookmark(bookmark: BookmarkEntity)
 
@@ -47,6 +50,9 @@ interface BookmarkDao {
 
     @Query("UPDATE bookmarks SET thumbnailUrl = :thumbnailUrl WHERE id = :id")
     suspend fun updateThumbnailUrl(id: String, thumbnailUrl: String)
+
+    @Query("UPDATE bookmarks SET username = :username WHERE id = :id")
+    suspend fun updateUsername(id: String, username: String)
 
     @Query("UPDATE bookmarks SET url = :url WHERE id = :id")
     suspend fun updateUrl(id: String, url: String)

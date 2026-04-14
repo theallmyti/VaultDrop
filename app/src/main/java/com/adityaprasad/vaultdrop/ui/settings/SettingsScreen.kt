@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
@@ -60,7 +61,7 @@ import com.adityaprasad.vaultdrop.util.InstagramSessionManager
 fun SettingsScreen(
     onBack: () -> Unit,
     onDeleteAll: () -> Unit,
-    onDeleteAllBookmarks: () -> Unit,
+    onDeleteAllBookmarks: (Boolean) -> Unit,
     isRefreshingBookmarks: Boolean,
     onRefreshBookmarks: () -> Unit,
 ) {
@@ -70,6 +71,7 @@ fun SettingsScreen(
     var concurrentDownloads by remember { mutableStateOf(3) }
     var newTagText by remember { mutableStateOf("") }
     var editingTagIndex by remember { mutableStateOf(-1) }
+    var deleteBookmarksFromCloud by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -77,16 +79,33 @@ fun SettingsScreen(
     var appLockEnabled by remember { mutableStateOf(prefs.getBoolean("app_lock_enabled", false)) }
     var bookmarkTags by remember { mutableStateOf(loadBookmarkTagsFromPrefs(prefs)) }
     var hasInstagramSession by remember { mutableStateOf(InstagramSessionManager.hasSession(context)) }
+    var authToken by remember { mutableStateOf(prefs.getString("auth_token", null)) }
+    var authEmail by remember { mutableStateOf(prefs.getString("auth_email", null)) }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 hasInstagramSession = InstagramSessionManager.hasSession(context)
+                authToken = prefs.getString("auth_token", null)
+                authEmail = prefs.getString("auth_email", null)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    DisposableEffect(prefs) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, key ->
+            if (key == "auth_token" || key == "auth_email") {
+                authToken = sharedPrefs.getString("auth_token", null)
+                authEmail = sharedPrefs.getString("auth_email", null)
+            }
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            prefs.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
 
@@ -389,8 +408,61 @@ fun SettingsScreen(
                 title = "Delete All Bookmarks",
                 subtitle = "Remove all saved bookmark links",
                 isDestructive = true,
-                onClick = { showDeleteBookmarksDialog = true }
+                onClick = {
+                    deleteBookmarksFromCloud = false
+                    showDeleteBookmarksDialog = true
+                }
             )
+
+            SettingsDivider()
+
+            // --- Cloud Sync & Backup ---
+            SectionHeader("Cloud Backup & Sync")
+
+            SettingsRow(
+                title = "Account Link",
+                subtitle = authEmail?.let { "Linked to $it" } ?: "Sign in to backup and sync bookmarks",
+                onClick = {
+                    if (authToken == null) {
+                        context.startActivity(Intent(context, com.adityaprasad.vaultdrop.ui.auth.AuthActivity::class.java))
+                    }
+                }
+            ) {
+                if (authToken != null) {
+                    Text(
+                        text = "Sign out",
+                        modifier = Modifier
+                            .clip(PillShape)
+                            .background(BgElevated)
+                            .clickable {
+                                prefs.edit().remove("auth_token").remove("auth_email").apply()
+                                authToken = null
+                                authEmail = null
+                                Toast.makeText(context, "Signed out successfully.", Toast.LENGTH_SHORT).show()
+                            }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        fontFamily = DmSans,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                } else {
+                    Text(
+                        text = "Sign in",
+                        modifier = Modifier
+                            .clip(PillShape)
+                            .background(AccentPrimary)
+                            .clickable {
+                                context.startActivity(Intent(context, com.adityaprasad.vaultdrop.ui.auth.AuthActivity::class.java))
+                            }
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                        fontFamily = DmSans,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp,
+                        color = BgPrimary
+                    )
+                }
+            }
 
             SettingsDivider()
 
@@ -511,18 +583,39 @@ fun SettingsScreen(
                 )
             },
             text = {
-                Text(
-                    text = "This will permanently remove all saved bookmark links. This action cannot be undone.",
-                    fontFamily = DmSans,
-                    fontWeight = FontWeight.Light,
-                    color = TextSecondary
-                )
+                Column {
+                    Text(
+                        text = "This will permanently remove all saved bookmark links. This action cannot be undone.",
+                        fontFamily = DmSans,
+                        fontWeight = FontWeight.Light,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { deleteBookmarksFromCloud = !deleteBookmarksFromCloud },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = deleteBookmarksFromCloud,
+                            onCheckedChange = { deleteBookmarksFromCloud = it }
+                        )
+                        Text(
+                            text = "Also remove from cloud database",
+                            fontFamily = DmSans,
+                            fontWeight = FontWeight.Light,
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showDeleteBookmarksDialog = false
-                        onDeleteAllBookmarks()
+                        onDeleteAllBookmarks(deleteBookmarksFromCloud)
                     }
                 ) {
                     Text("Delete", color = StatusError)

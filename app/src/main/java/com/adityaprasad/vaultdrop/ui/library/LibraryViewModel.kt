@@ -6,10 +6,13 @@ import com.adityaprasad.vaultdrop.data.repository.DownloadRepository
 import com.adityaprasad.vaultdrop.domain.model.DownloadItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,6 +23,7 @@ enum class LibraryFilter {
     BY_SOURCE
 }
 
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val repository: DownloadRepository,
@@ -38,8 +42,12 @@ class LibraryViewModel @Inject constructor(
     val usernames: StateFlow<List<String>> = repository.getCompletedUsernames()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val debouncedSearchQuery = _searchQuery
+        .debounce(250)
+        .distinctUntilChanged()
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val videos: StateFlow<List<DownloadItem>> = _searchQuery
+    val videos: StateFlow<List<DownloadItem>> = debouncedSearchQuery
         .flatMapLatest { query ->
             if (query.isBlank()) repository.getCompletedDownloads()
             else repository.searchCompletedDownloads(query)

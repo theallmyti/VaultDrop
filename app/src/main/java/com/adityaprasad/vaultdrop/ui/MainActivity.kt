@@ -15,34 +15,30 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +46,8 @@ import androidx.core.content.ContextCompat
 import com.adityaprasad.vaultdrop.data.repository.DownloadRepository
 import com.adityaprasad.vaultdrop.data.repository.BookmarkRepository
 import com.adityaprasad.vaultdrop.data.downloader.InstagramDownloader
+import com.adityaprasad.vaultdrop.data.api.ConvexApiService
+import com.adityaprasad.vaultdrop.data.api.DeleteAllBookmarksRequest
 import com.adityaprasad.vaultdrop.domain.model.DownloadItem
 import com.adityaprasad.vaultdrop.domain.model.DownloadStatus
 import com.adityaprasad.vaultdrop.ui.components.BottomNavBar
@@ -66,12 +64,6 @@ import com.adityaprasad.vaultdrop.ui.theme.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.ui.unit.dp
 
 import com.adityaprasad.vaultdrop.ui.components.AppLockScreen
 import com.adityaprasad.vaultdrop.util.InstagramUrlUtils
@@ -93,6 +85,9 @@ class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var instagramDownloader: InstagramDownloader
+
+    @Inject
+    lateinit var convexApi: ConvexApiService
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -135,7 +130,8 @@ class MainActivity : FragmentActivity() {
                         repository = repository,
                         deleteDownloadUseCase = deleteDownloadUseCase,
                         bookmarkRepository = bookmarkRepository,
-                        instagramDownloader = instagramDownloader
+                        instagramDownloader = instagramDownloader,
+                        convexApi = convexApi
                     )
                 }
             }
@@ -221,13 +217,13 @@ class MainActivity : FragmentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainApp(
     repository: DownloadRepository,
     deleteDownloadUseCase: com.adityaprasad.vaultdrop.domain.usecase.DeleteDownloadUseCase,
     bookmarkRepository: BookmarkRepository,
-    instagramDownloader: InstagramDownloader
+    instagramDownloader: InstagramDownloader,
+    convexApi: ConvexApiService
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -239,7 +235,6 @@ fun MainApp(
     }
 
     // Settings navigation
-    var showSettings by rememberSaveable { mutableStateOf(false) }
     var isRefreshingBookmarks by rememberSaveable { mutableStateOf(false) }
 
     if (!hasCompletedOnboarding) {
@@ -252,28 +247,90 @@ fun MainApp(
         return
     }
 
-    if (showSettings) {
-        BackHandler { showSettings = false }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BgPrimary)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-        ) {
-            SettingsScreen(
-                onBack = { showSettings = false },
-                onDeleteAll = { 
+    // Main tabbed UI with swipe
+    val navItems = remember {
+        listOf(
+            NavItem(
+                label = "Home",
+                iconOutlined = Icons.Outlined.Home,
+                iconFilled = Icons.Filled.Home,
+                route = "home"
+            ),
+            NavItem(
+                label = "Download",
+                iconOutlined = Icons.Outlined.Download,
+                iconFilled = Icons.Filled.Download,
+                route = "downloads"
+            ),
+            NavItem(
+                label = "Library",
+                iconOutlined = Icons.Outlined.FolderOpen,
+                iconFilled = Icons.Filled.FolderOpen,
+                route = "library"
+            ),
+            NavItem(
+                label = "Vault",
+                iconOutlined = Icons.Outlined.Bookmark,
+                iconFilled = Icons.Filled.Bookmark,
+                route = "vault"
+            ),
+            NavItem(
+                label = "Settings",
+                iconOutlined = Icons.Outlined.Settings,
+                iconFilled = Icons.Filled.Settings,
+                route = "settings"
+            ),
+        )
+    }
+
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgPrimary)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        when (selectedIndex) {
+            0 -> HomeScreen(repository = repository)
+            1 -> com.adityaprasad.vaultdrop.ui.downloads.DownloadsScreen(
+                onVideoClick = { item -> openVideoPlayer(context, item) }
+            )
+            2 -> LibraryScreen(
+                onVideoClick = { item -> openVideoPlayer(context, item) },
+                onShareClick = { item -> shareVideo(context, item) },
+                onDeleteClick = { /* handled by viewmodel */ }
+            )
+            3 -> BookmarksScreen()
+            4 -> SettingsScreen(
+                onBack = { selectedIndex = 0 },
+                onDeleteAll = {
                     coroutineScope.launch {
                         deleteDownloadUseCase.deleteAll()
                     }
                 },
-                onDeleteAllBookmarks = {
+                onDeleteAllBookmarks = { removeFromCloud ->
                     coroutineScope.launch {
+                        var cloudDeleted = false
                         withContext(Dispatchers.IO) {
+                            if (removeFromCloud) {
+                                val token = prefs.getString("auth_token", null).orEmpty().trim()
+                                if (token.isNotBlank()) {
+                                    val response = runCatching {
+                                        convexApi.deleteAllBookmarks(DeleteAllBookmarksRequest(token = token))
+                                    }.getOrNull()
+                                    cloudDeleted = response?.isSuccessful == true && (response.body()?.success == true)
+                                }
+                            }
                             bookmarkRepository.deleteAllBookmarks()
                         }
-                        Toast.makeText(context, "All bookmarks deleted", Toast.LENGTH_SHORT).show()
+                        val message = when {
+                            !removeFromCloud -> "All bookmarks deleted"
+                            cloudDeleted -> "All bookmarks deleted (local + cloud)"
+                            else -> "Local bookmarks deleted. Cloud delete failed."
+                        }
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                     }
                 },
                 isRefreshingBookmarks = isRefreshingBookmarks,
@@ -332,80 +389,6 @@ fun MainApp(
                 }
             )
         }
-        return
-    }
-
-    // Main tabbed UI with swipe
-    val navItems = remember {
-        listOf(
-            NavItem(
-                label = "Home",
-                iconOutlined = Icons.Outlined.Home,
-                iconFilled = Icons.Filled.Home,
-                route = "home"
-            ),
-            NavItem(
-                label = "Downloads",
-                iconOutlined = Icons.Outlined.Download,
-                iconFilled = Icons.Filled.Download,
-                route = "downloads"
-            ),
-            NavItem(
-                label = "Library",
-                iconOutlined = Icons.Outlined.FolderOpen,
-                iconFilled = Icons.Filled.FolderOpen,
-                route = "library"
-            ),
-            NavItem(
-                label = "Vault",
-                iconOutlined = Icons.Outlined.Bookmark,
-                iconFilled = Icons.Filled.Bookmark,
-                route = "vault"
-            ),
-        )
-    }
-
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { navItems.size }
-    )
-
-    // Sync pager with currently selected route
-    var selectedIndex by rememberSaveable { mutableStateOf(0) }
-
-    // When user swipes, update the selected tab
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            selectedIndex = page
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BgPrimary)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        // Swipeable pages
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 0
-        ) { page ->
-            when (page) {
-                0 -> HomeScreen(repository = repository)
-                1 -> com.adityaprasad.vaultdrop.ui.downloads.DownloadsScreen(
-                    onVideoClick = { item -> openVideoPlayer(context, item) }
-                )
-                2 -> LibraryScreen(
-                    onVideoClick = { item -> openVideoPlayer(context, item) },
-                    onShareClick = { item -> shareVideo(context, item) },
-                    onDeleteClick = { /* handled by viewmodel */ }
-                )
-                3 -> BookmarksScreen()
-            }
-        }
 
         // Floating bottom nav bar
         BottomNavBar(
@@ -414,28 +397,11 @@ fun MainApp(
             onItemSelected = { route ->
                 val index = navItems.indexOfFirst { it.route == route }
                 if (index >= 0 && index != selectedIndex) {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(index)
-                    }
+                    selectedIndex = index
                 }
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
-        
-        // Universal Settings Icon
-        androidx.compose.material3.IconButton(
-            onClick = { showSettings = true },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 18.dp, end = 20.dp)
-        ) {
-            androidx.compose.material3.Icon(
-                imageVector = androidx.compose.material.icons.Icons.Filled.Settings,
-                contentDescription = "Settings",
-                tint = com.adityaprasad.vaultdrop.ui.theme.TextSecondary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
     }
 }
 
