@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="VaultDrop is an Android post-downloader for Instagram and YouTube with downloads, bookmarks, previews, tags, and session-backed extraction." />
+    <title>VaultDrop | Android Post-Downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="nav-wrap">
+        <div class="nav liquid-glass-strong">
+          <a class="brand" href="#home" aria-label="VaultDrop home">
+            <span class="brand-logo" aria-hidden="true"></span>
+            <span>
+              <strong>VaultDrop</strong>
+              <small>Android post-downloader</small>
+            </span>
+          </a>
+          <nav class="nav-links" aria-label="Primary">
+            <a href="#home">Home</a>
+            <a href="#walkthrough">Walkthrough</a>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#screenshots">Screenshots</a>
+            <a href="#faq">FAQ</a>
+            <a href="https://github.com/theallmyti/VaultDrop" target="_blank" rel="noreferrer">Repository</a>
+          </nav>
+          <details class="mobile-menu">
+            <summary>Menu</summary>
+            <div class="mobile-menu-panel">
+              <a class="mobile-menu-cta" href="https://github.com/theallmyti/VaultDrop/releases/download/app/VaultDrop-arm64-v8a-debug-1.0.0.apk" target="_blank" rel="noreferrer">Download APK</a>
+              <a href="#home">Home</a>
+              <a href="#walkthrough">Walkthrough</a>
+              <a href="#features">Features</a>
+              <a href="#how-it-works">How it works</a>
+              <a href="#screenshots">Screenshots</a>
+              <a href="#faq">FAQ</a>
+              <a href="https://github.com/theallmyti/VaultDrop" target="_blank" rel="noreferrer">Repository</a>
+            </div>
+          </details>
+          <a class="cta-pill" href="https://github.com/theallmyti/VaultDrop/releases/download/appupdate/VaultDrop-armeabi-v7a-debug-1.0.0.apk" target="_blank" rel="noreferrer">Download APK</a>
+        </div>
+      </header>
+
+      <main id="home">
+        <section class="hero">
+          <div class="hero-bg-orb orb-1"></div>
+          <div class="hero-bg-orb orb-2"></div>
+          <div class="hero-copy reveal">
+            <div class="kicker liquid-glass">VaultDrop for Android</div>
+            <h1 class="display-title">
+              Download, bookmark, and preview social links without leaving your flow.
+            </h1>
+            <p class="hero-text">
+              VaultDrop is a dark, polished Android app for Instagram and YouTube links. It captures shared URLs, builds a download queue, saves bookmarks with notes and tags, and gives you an in-app preview experience with fast maintenance tools in Settings.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-btn liquid-glass-strong" href="https://github.com/theallmyti/VaultDrop/releases/download/app/VaultDrop-arm64-v8a-debug-1.0.0.apk" target="_blank" rel="noreferrer">Download APK</a>
+              <a class="secondary-btn" href="#walkthrough">Explore walkthrough</a>
+            </div>
+            <div class="hero-badges">
+              <span class="badge">Instagram reels</span>
+              <span class="badge">YouTube videos</span>
+              <span class="badge">Bookmarks + tags</span>
+              <span class="badge">Preview in app</span>
+            </div>
+          </div>
+
+          <div class="hero-showcase liquid-glass reveal">
+            <div class="showcase-frame">
+              <div class="showcase-topline">
+                <span>Live app preview</span>
+                <span>Android 8.0+</span>
+              </div>
+              <div class="showcase-stack">
+                <img src="./UI-screenshots/HomePage.png" alt="VaultDrop home screen" />
+                <img src="./UI-screenshots/BookmarkPage.png" alt="VaultDrop bookmarks screen" />
+              </div>
+              <div class="showcase-stats">
+                <div>
+                  <strong>Session login</strong>
+                  <span>Authenticated extraction support</span>
+                </div>
+                <div>
+                  <strong>Quick tags</strong>
+                  <span>Notes you can reuse anywhere</span>
+                </div>
+                <div>
+                  <strong>Repair tools</strong>
+                  <span>Fix URLs and refresh thumbnails</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="intro section reveal">
+          <div class="section-label">Why VaultDrop exists</div>
+          <h2 class="section-title">A better way to capture, organize, and revisit saved media links.</h2>
+          <p class="section-copy">
+            VaultDrop turns shared links into a structured local library. Instead of losing track of reels, posts, and videos, you can download them, save them as bookmarks, add reusable tags, and come back later with thumbnails, notes, and a clean timeline view.
+          </p>
+        </section>
+
+        <section id="walkthrough" class="section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">Feature walkthrough</div>
+              <h2 class="section-title">How people actually use VaultDrop</h2>
+            </div>
+            <a class="section-link" href="#screenshots">See UI screenshots</a>
+          </div>
+          <div class="walkthrough-grid">
+            <article class="glass-card liquid-glass">
+              <span class="card-step">01</span>
+              <h3>Share into VaultDrop</h3>
+              <p>Tap Share from Instagram or YouTube and VaultDrop appears as a share target. The app detects the platform and prepares either a download action or a bookmark save flow.</p>
+            </article>
+            <article class="glass-card liquid-glass">
+              <span class="card-step">02</span>
+              <h3>Choose what to do</h3>
+              <p>Send the link to the download queue, or save it to Bookmarks with a note. On the save flow, you can tap reusable tags before writing the final comment.</p>
+            </article>
+            <article class="glass-card liquid-glass">
+              <span class="card-step">03</span>
+              <h3>Track downloads</h3>
+              <p>Open Downloads to watch active items, review progress, and inspect queued or failed jobs. Each download card shows metadata and visual status feedback.</p>
+            </article>
+            <article class="glass-card liquid-glass">
+              <span class="card-step">04</span>
+              <h3>Browse the library</h3>
+              <p>Completed files are collected in Library, where you can open the built-in player, browse by date, and access content quickly in a visual grid.</p>
+            </article>
+            <article class="glass-card liquid-glass">
+              <span class="card-step">05</span>
+              <h3>Bookmark with context</h3>
+              <p>Saved links appear in a thumbnail-first Vault view. Long press any card to preview, open in browser, copy the link, refresh the thumbnail, or delete the bookmark.</p>
+            </article>
+            <article class="glass-card liquid-glass">
+              <span class="card-step">06</span>
+              <h3>Repair and refine</h3>
+              <p>Settings includes tools to repair Instagram URLs, refresh thumbnails, manage session login, and maintain reusable bookmark tags without leaving the app.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="features" class="section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">Core features</div>
+              <h2 class="section-title">Everything VaultDrop handles for you</h2>
+            </div>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">⇩</span>
+              <h3>Download queue</h3>
+              <p>Queue multiple links, track progress, and keep downloads organized with active/completed states.</p>
+            </article>
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">▣</span>
+              <h3>Bookmarks vault</h3>
+              <p>Save links with comments, notes, tags, and thumbnails so you can return to them later.</p>
+            </article>
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">▶</span>
+              <h3>In-app preview</h3>
+              <p>Preview shared links inside the app with direct media resolution and a safer fallback state.</p>
+            </article>
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">⌁</span>
+              <h3>URL repair</h3>
+              <p>Normalize Instagram links, remove tracking fragments, and refresh old thumbnails in one tap.</p>
+            </article>
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">◌</span>
+              <h3>Instagram session login</h3>
+              <p>Save your logged-in session to improve extraction for private or limited Instagram content.</p>
+            </article>
+            <article class="feature-card liquid-glass-strong">
+              <span class="icon-chip">✦</span>
+              <h3>Reusable tags</h3>
+              <p>Manage quick tags in Settings and apply them to bookmark notes from the save link flow.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="how-it-works" class="section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">How it works</div>
+              <h2 class="section-title">From share sheet to saved media</h2>
+            </div>
+          </div>
+          <div class="timeline">
+            <article class="timeline-item">
+              <div class="timeline-node"></div>
+              <div class="timeline-card liquid-glass">
+                <h3>1. Shared link arrives</h3>
+                <p>The app receives an Instagram or YouTube text link through the Android share sheet and detects the platform automatically.</p>
+              </div>
+            </article>
+            <article class="timeline-item reverse">
+              <div class="timeline-node"></div>
+              <div class="timeline-card liquid-glass">
+                <h3>2. Downloader resolves media</h3>
+                <p>VaultDrop fetches metadata, thumbnails, and media URLs, then sends downloads to the queue if that path is chosen.</p>
+              </div>
+            </article>
+            <article class="timeline-item">
+              <div class="timeline-node"></div>
+              <div class="timeline-card liquid-glass">
+                <h3>3. Bookmark gets enriched</h3>
+                <p>Saved links receive thumbnail previews, optional tags, comments, and cleaned canonical URLs for long-term use.</p>
+              </div>
+            </article>
+            <article class="timeline-item reverse">
+              <div class="timeline-node"></div>
+              <div class="timeline-card liquid-glass">
+                <h3>4. Settings maintain the library</h3>
+                <p>If thumbnails or URLs degrade, Settings can repair Instagram links, refresh previews, and manage your login session.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="specs section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">App behavior</div>
+              <h2 class="section-title">What the app feels like to use</h2>
+            </div>
+          </div>
+          <div class="specs-grid">
+            <div class="spec-hero liquid-glass">
+              <img src="./UI-screenshots/LibraryPage.png" alt="VaultDrop library screen" />
+              <div class="spec-hero-copy">
+                <span>VaultDrop Library</span>
+                <strong>Fast access to saved media</strong>
+              </div>
+            </div>
+            <div class="spec-cards">
+              <div class="mini-spec liquid-glass"><strong>Dark cinematic UI</strong><span>Minimal, high contrast, app-first visuals.</span></div>
+              <div class="mini-spec liquid-glass"><strong>Thumbnail-first vault</strong><span>Saved items are easy to scan at a glance.</span></div>
+              <div class="mini-spec liquid-glass"><strong>Built-in player</strong><span>Open downloaded media without leaving the app.</span></div>
+              <div class="mini-spec liquid-glass"><strong>Fast maintenance</strong><span>Repair bad links and stale previews from Settings.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="screenshots" class="section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">UI screenshots</div>
+              <h2 class="section-title">A quick look at the app screens</h2>
+            </div>
+          </div>
+          <div class="screenshot-grid">
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/HomePage.png" alt="Home screen" /><figcaption>Home</figcaption></figure>
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/DownloadPage.png" alt="Downloads screen" /><figcaption>Downloads</figcaption></figure>
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/LibraryPage.png" alt="Library screen" /><figcaption>Library</figcaption></figure>
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/BookmarkPage.png" alt="Bookmarks screen" /><figcaption>Bookmarks</figcaption></figure>
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/SettingPage1.png" alt="Settings screen one" /><figcaption>Settings 1</figcaption></figure>
+            <figure class="shot-card liquid-glass"><img src="./UI-screenshots/SettingPage2.png" alt="Settings screen two" /><figcaption>Settings 2</figcaption></figure>
+          </div>
+        </section>
+
+        <section id="faq" class="section reveal">
+          <div class="section-head">
+            <div>
+              <div class="section-label">FAQ</div>
+              <h2 class="section-title">Common questions about VaultDrop</h2>
+            </div>
+          </div>
+          <div class="faq-list">
+            <button class="faq-item liquid-glass" type="button" data-faq aria-expanded="false">
+              <span>Does VaultDrop support Instagram Reels and posts?</span>
+              <strong>+</strong>
+            </button>
+            <div class="faq-answer" aria-hidden="true">Yes. VaultDrop is designed to handle Instagram posts, reels, and stories, plus YouTube links through the share flow.</div>
+
+            <button class="faq-item liquid-glass" type="button" data-faq aria-expanded="false">
+              <span>Can I save notes and tags on bookmarks?</span>
+              <strong>+</strong>
+            </button>
+            <div class="faq-answer" aria-hidden="true">Yes. Bookmark notes and reusable tags are stored with the saved link so you can organize and search later.</div>
+
+            <button class="faq-item liquid-glass" type="button" data-faq aria-expanded="false">
+              <span>What if thumbnails fail to load?</span>
+              <strong>+</strong>
+            </button>
+            <div class="faq-answer" aria-hidden="true">VaultDrop includes repair tools in Settings to normalize bad Instagram URLs and refresh thumbnails for old bookmarks.</div>
+
+            <button class="faq-item liquid-glass" type="button" data-faq aria-expanded="false">
+              <span>Do I need to log in for everything?</span>
+              <strong>+</strong>
+            </button>
+            <div class="faq-answer" aria-hidden="true">No. Public links usually work without login, but authenticated Instagram session login can improve access to private or restricted content.</div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-top">
+          <div>
+            <div class="section-label">Download</div>
+            <h2 class="footer-title">Your next save is one tap away.</h2>
+          </div>
+          <form class="subscribe-form" onsubmit="return false;">
+            <input type="email" placeholder="Enter your email" aria-label="Email address" />
+            <a href="https://github.com/theallmyti/VaultDrop/releases/download/appupdate/VaultDrop-armeabi-v7a-debug-1.0.0.apk" target="_blank" rel="noreferrer" class="subscribe-btn">Get APK</a>
+          </form>
+        </div>
+
+        <div class="footer-links">
+          <div>
+            <h3>VaultDrop</h3>
+            <a href="#home">About the app</a>
+            <a href="#walkthrough">Feature walkthrough</a>
+            <a href="#screenshots">Screenshots</a>
+          </div>
+          <div>
+            <h3>Tools</h3>
+            <a href="#features">Download queue</a>
+            <a href="#features">Bookmarks vault</a>
+            <a href="#how-it-works">Repair flow</a>
+          </div>
+          <div>
+            <h3>Support</h3>
+            <a href="#faq">FAQ</a>
+            <a href="https://github.com/theallmyti/VaultDrop" target="_blank" rel="noreferrer">GitHub Repository</a>
+            <p>APK placeholder</p>
+            <p>Instagram session login</p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>Copyright © VaultDrop</span>
+          <span><a href="#home">Policy</a></span>
+          <span class="signature">Aditya Prasad</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
